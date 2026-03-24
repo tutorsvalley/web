@@ -3,81 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutors Valley | ঢাকার শহরের সেরা হোম টিউটর প্ল্যাটফর্ম</title>
+    <title>Tutors Valley | Home Tutors in Dhaka</title>
     
+    <!-- CSS & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&family=Poppins:wght@400;700&family=Anek+Bangla&family=Mina&family=Atma&family=Galada&family=Li+Adador+Lipi&family=Siyam+Rupali&family=Noto+Serif+Bengali&family=Tiro+Bangla&family=Roboto&family=Montserrat&family=Open+Sans&family=Lato&family=Oswald&family=Raleway&family=Ubuntu&family=Merriweather&family=Playfair+Display&family=Lora&family=Nunito&family=Kanit&family=Bebas+Neue&family=Pacifico&family=Dancing+Script&family=Shadows+Into+Light&family=Fira+Sans&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&family=Poppins:wght@400;700&family=Mina&family=Atma&family=Galada&family=Noto+Serif+Bengali&family=Tiro+Bangla&family=Roboto&family=Montserrat&family=Open+Sans&family=Oswald&family=Raleway&family=Ubuntu&family=Playfair+Display&family=Lora&family=Nunito&family=Kanit&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
+
+    <!-- React & Babel CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        body { transition: background 0.3s; overflow-x: hidden; }
-        .zone-card { border-radius: 24px; background: white; border: 1px solid #eee; transition: 0.3s; }
-        .zone-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        
-        /* Loading Spinner */
-        .page-loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #1e3a8a; border-radius: 50%; animation: spin 1s linear infinite; }
-        .spinner-sm { width: 20px; height: 20px; border: 2px solid transparent; border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        body { margin: 0; padding: 0; transition: background 0.3s; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1e3a8a; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Header Flow */
-        .site-header { position: relative; width: 100%; transition: 0.3s; }
-        .admin-lock { opacity: 0.1; cursor: pointer; }
-        .admin-lock:hover { opacity: 1; color: #1e3a8a; }
+        .zone-card { border-radius: 20px; background: white; border: 1px solid #eee; transition: 0.3s; }
+        .zone-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        select, input, textarea { outline: none; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const ADMIN_EMAIL = "kabirhasanat7@gmail.com";
-        const ADMIN_PASS = "admin1";
-        
-        const FONTS = [
-            "Hind Siliguri", "Anek Bangla", "Mina", "Atma", "Galada", "Li Adador Lipi", "Siyam Rupali", "Noto Serif Bengali", "Tiro Bangla", "SolaimanLipi",
-            "Poppins", "Roboto", "Montserrat", "Open Sans", "Lato", "Oswald", "Raleway", "Ubuntu", "Merriweather", "Playfair Display", "Lora", "Nunito", "Kanit", "Bebas Neue", "Pacifico", "Dancing Script", "Shadows Into Light", "Fira Sans", "Arial", "Verdana"
-        ];
+        const ADMIN_CRED = { email: "kabirhasanat7@gmail.com", pass: "admin1" };
+        const FONT_LIST = ["Hind Siliguri", "Anek Bangla", "Mina", "Atma", "Galada", "Noto Serif Bengali", "Tiro Bangla", "Poppins", "Roboto", "Montserrat", "Open Sans", "Oswald", "Raleway", "Ubuntu", "Playfair Display", "Lora", "Nunito", "Kanit", "Bebas Neue", "Pacifico"];
 
         function App() {
-            const [loading, setLoading] = useState(true);
             const [view, setView] = useState("landing");
+            const [loading, setLoading] = useState(false);
             const [user, setUser] = useState(JSON.parse(localStorage.getItem("tv_user")) || null);
             const [usersDB, setUsersDB] = useState(JSON.parse(localStorage.getItem("tv_db")) || []);
             
-            // Comprehensive Settings for Fonts, Size, Color
             const [settings, setSettings] = useState(JSON.parse(localStorage.getItem("tv_settings")) || {
                 bannerColor: "#1e3a8a",
                 logo: "https://i.ibb.co/hRT1DFmF/logo.png",
                 ceoImg: "https://i.ibb.co/Gvm6RLwW/ceo.png",
-                
-                // Content Styles
-                heroTitle: { text: "Tutors Valley", font: "Poppins", size: "40px", color: "#1e3a8a" },
-                heroMotto: { text: "ঢাকার শহরে আমরাই দিচ্ছি সেরা টিউটর", font: "Hind Siliguri", size: "20px", color: "#3b82f6" },
-                aboutTitle: { text: "আমাদের সম্পর্কে", font: "Hind Siliguri", size: "28px", color: "#111827" },
-                aboutDesc: { text: "Tutors Valley হলো ঢাকার সবচেয়ে বিশ্বস্ত টিউটর প্ল্যাটফর্ম। আমরা শিক্ষার্থী ও দক্ষ গৃহশিক্ষকদের মধ্যে একটি নির্ভরযোগ্য সেতুবন্ধন তৈরি করি।", font: "Hind Siliguri", size: "18px", color: "#4b5563" },
-                ceoTitle: { text: "Message From CEO", font: "Poppins", size: "24px", color: "#111827" },
-                ceoDesc: { text: "গুণগত শিক্ষা ও বিশ্বস্ততা আমাদের মূল লক্ষ্য।", font: "Hind Siliguri", size: "16px", color: "#6b7280" },
-                footerText: { text: "© 2024 Tutors Valley. All Rights Reserved.", font: "Poppins", size: "14px", color: "#9ca3af" },
-                
+                title: { text: "Tutors Valley", font: "Poppins", size: "32px", color: "#1e3a8a" },
+                motto: { text: "ঢাকার শহরে আমরাই দিচ্ছি সেরা টিউটর", font: "Hind Siliguri", size: "18px", color: "#3b82f6" },
+                about: { text: "Tutors Valley হলো ঢাকার একটি বিশ্বস্ত টিউটর প্ল্যাটফর্ম।", font: "Hind Siliguri", size: "16px", color: "#4b5563" },
+                ceoMsg: { text: "গুণগত শিক্ষা আমাদের লক্ষ্য।", font: "Hind Siliguri", size: "15px", color: "#6b7280" },
+                footer: { text: "© 2024 Tutors Valley. All Rights Reserved.", font: "Poppins", size: "12px", color: "#9ca3af" },
                 zones: [
-                    { id: 1, title: "Uttara", area: "Sector 1-14, Azampur", maleLink: "#", femaleLink: "#" },
-                    { id: 2, title: "Gulshan", area: "Gulshan 1, 2, Banani", maleLink: "#", femaleLink: "#" },
-                    { id: 3, title: "Dhanmondi", area: "Road 15, 27, Zigatola", maleLink: "#", femaleLink: "#" },
-                    { id: 4, title: "Mirpur", area: "Mirpur 1, 10, Pallabi", maleLink: "#", femaleLink: "#" },
-                    { id: 5, title: "Mohammadpur", area: "Adabor, Town Hall", maleLink: "#", femaleLink: "#" },
-                    { id: 6, title: "Badda", area: "Rampura, Banasree", maleLink: "#", femaleLink: "#" }
+                    { id: 1, name: "Uttara", tags: "Sector 1-14", ml: "#", fl: "#" },
+                    { id: 2, name: "Gulshan", tags: "Gulshan 1, 2", ml: "#", fl: "#" },
+                    { id: 3, name: "Dhanmondi", tags: "Road 15, 27", ml: "#", fl: "#" },
+                    { id: 4, name: "Mirpur", tags: "Mirpur 1, 10", ml: "#", fl: "#" },
+                    { id: 5, name: "Mohammadpur", tags: "Town Hall", ml: "#", fl: "#" },
+                    { id: 6, name: "Badda", tags: "Rampura", ml: "#", fl: "#" }
                 ]
             });
-
-            useEffect(() => {
-                setTimeout(() => setLoading(false), 1000); // Initial Loader
-                if(user) setView("home");
-            }, []);
 
             useEffect(() => {
                 localStorage.setItem("tv_settings", JSON.stringify(settings));
@@ -85,305 +64,175 @@
                 if(user) localStorage.setItem("tv_user", JSON.stringify(user));
             }, [settings, usersDB, user]);
 
-            const navigate = (to) => {
+            const triggerLoad = (callback) => {
                 setLoading(true);
-                setTimeout(() => {
-                    setView(to);
-                    setLoading(false);
-                }, 800);
+                setTimeout(() => { callback(); setLoading(false); }, 800);
             };
 
-            const handleLogout = () => {
-                setUser(null);
-                localStorage.removeItem("tv_user");
-                navigate("landing");
-            };
-
-            const login = (e, p) => {
-                if(e === ADMIN_EMAIL && p === ADMIN_PASS) {
+            const handleLogin = (e, p) => {
+                if(e === ADMIN_CRED.email && p === ADMIN_CRED.pass) {
                     setUser({email: e, role: "Admin"});
-                    navigate("home");
+                    triggerLoad(() => setView("home"));
                 } else {
-                    const found = usersDB.find(u => u.email === e && u.pass === p);
-                    if(found) { setUser(found); navigate("home"); }
+                    const u = usersDB.find(x => x.email === e && x.pass === p);
+                    if(u) { setUser(u); triggerLoad(() => setView("home")); }
                     else alert("ভুল তথ্য!");
                 }
             };
 
-            // Shared Header Component (Not Fixed)
             const SiteHeader = () => (
-                <header className="site-header text-white" style={{backgroundColor: settings.bannerColor}}>
-                    <div className="max-w-6xl mx-auto p-6 flex items-center justify-between">
-                        <div className="w-10">
-                            {user?.role === 'Admin' && <AdminGear settings={settings} setSettings={setSettings} />}
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <img src={settings.logo} className="w-12 h-12 rounded-full border-2 border-white mb-1 shadow-lg" />
-                            <h1 style={{fontFamily: settings.heroTitle.font, fontSize: "18px"}} className="font-bold">{settings.heroTitle.text}</h1>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <a href="#"><i className="fa-brands fa-facebook text-2xl"></i></a>
-                            {user && <button onClick={handleLogout} className="bg-red-500 px-3 py-1 rounded text-xs font-bold uppercase">Logout</button>}
-                        </div>
+                <div className="w-full text-white py-4 px-6 flex justify-between items-center" style={{backgroundColor: settings.bannerColor}}>
+                    <div className="w-8">
+                        {user?.role === 'Admin' && <AdminControl settings={settings} setSettings={setSettings} />}
                     </div>
-                </header>
+                    <div className="text-center">
+                        <img src={settings.logo} className="w-10 h-10 rounded-full border-2 border-white mx-auto" />
+                        <h1 style={{fontFamily: settings.title.font, fontSize: "16px"}} className="font-bold">{settings.title.text}</h1>
+                    </div>
+                    <div className="flex gap-3 items-center">
+                        <a href="#"><i className="fa-brands fa-facebook text-xl"></i></a>
+                        {user && <button onClick={() => { localStorage.removeItem("tv_user"); setUser(null); setView("landing"); }} className="bg-red-500 px-2 py-1 rounded text-[10px] font-bold">LOGOUT</button>}
+                    </div>
+                </div>
             );
 
-            return (
-                <div>
-                    {loading && <div className="page-loader"><div className="spinner"></div></div>}
-                    
-                    {view === "landing" && (
-                        <div onMouseMove={() => {}}>
-                            <SiteHeader />
-                            <main className="min-h-screen flex flex-col items-center py-16 px-6 text-center">
-                                <img src={settings.logo} className="w-32 h-32 rounded-full border-4 border-white shadow-2xl mb-6" />
-                                <h1 style={{fontFamily: settings.heroTitle.font, fontSize: settings.heroTitle.size, color: settings.heroTitle.color}} className="font-bold mb-2">
-                                    {settings.heroTitle.text}
-                                </h1>
-                                <p style={{fontFamily: settings.heroMotto.font, fontSize: settings.heroMotto.size, color: settings.heroMotto.color}} className="font-bold mb-12">
-                                    {settings.heroMotto.text}
-                                </p>
-                                
-                                <div className="max-w-3xl bg-white p-10 rounded-[40px] shadow-sm border mb-16">
-                                    <h2 style={{fontFamily: settings.aboutTitle.font, fontSize: settings.aboutTitle.size, color: settings.aboutTitle.color}} className="font-bold mb-4">
-                                        {settings.aboutTitle.text}
-                                    </h2>
-                                    <p style={{fontFamily: settings.aboutDesc.font, fontSize: settings.aboutDesc.size, color: settings.aboutDesc.color}} className="leading-relaxed">
-                                        {settings.aboutDesc.text}
-                                    </p>
-                                </div>
-                                
-                                <button onClick={() => navigate("login")} className="bg-blue-800 text-white px-14 py-4 rounded-full text-xl font-bold shadow-2xl hover:scale-105 active:scale-95 transition">
-                                    Login / Join Now
-                                </button>
-                                
-                                <footer className="mt-24 p-6">
-                                    <p style={{fontFamily: settings.footerText.font, fontSize: settings.footerText.size, color: settings.footerText.color}}>
-                                        {settings.footerText.text}
-                                    </p>
-                                </footer>
-                            </main>
+            if(loading) return <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]"><div className="spinner"></div></div>;
+
+            if(view === "landing") return (
+                <div className="min-h-screen bg-gray-50">
+                    <SiteHeader />
+                    <div className="flex flex-col items-center py-16 px-6 text-center">
+                        <img src={settings.logo} className="w-28 h-28 rounded-full shadow-xl mb-6" />
+                        <h1 style={{fontFamily: settings.title.font, fontSize: settings.title.size, color: settings.title.color}} className="font-bold">{settings.title.text}</h1>
+                        <p style={{fontFamily: settings.motto.font, fontSize: settings.motto.size, color: settings.motto.color}} className="mt-2 font-bold">{settings.motto.text}</p>
+                        <div className="max-w-2xl bg-white p-8 rounded-[30px] shadow-sm border mt-10">
+                            <p style={{fontFamily: settings.about.font, fontSize: settings.about.size, color: settings.about.color}}>{settings.about.text}</p>
                         </div>
-                    )}
+                        <button onClick={() => triggerLoad(() => setView("login"))} className="mt-12 bg-blue-800 text-white px-10 py-4 rounded-full font-bold shadow-lg">Login / Join Now</button>
+                        <p className="mt-20" style={{fontFamily: settings.footer.font, fontSize: settings.footer.size, color: settings.footer.color}}>{settings.footer.text}</p>
+                    </div>
+                </div>
+            );
 
-                    {view === "login" && <LoginPage login={login} setUsersDB={setUsersDB} usersDB={usersDB} navigate={navigate} settings={settings} />}
-                    
-                    {view === "home" && (
-                        <div className="min-h-screen bg-gray-50">
-                            <SiteHeader />
-                            <div className="w-full py-16 text-center bg-white border-b mb-10">
-                                <h2 style={{fontFamily: settings.heroTitle.font, color: settings.bannerColor}} className="text-3xl font-bold uppercase tracking-widest">Available Zones</h2>
-                                <p className="text-gray-400 mt-2">{settings.heroMotto.text}</p>
-                            </div>
-
-                            <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {settings.zones.map(z => (
-                                    <ZoneCard key={z.id} z={z} user={user} />
-                                ))}
-                            </div>
-
-                            <div className="mt-24 flex flex-col items-center text-center px-6 mb-20">
-                                <img src={settings.ceoImg} className="w-36 h-36 rounded-full border-4 border-white shadow-2xl mb-6 object-cover" />
-                                <h2 style={{fontFamily: settings.ceoTitle.font, fontSize: settings.ceoTitle.size, color: settings.ceoTitle.color}} className="font-bold mb-2">
-                                    {settings.ceoTitle.text}
-                                </h2>
-                                <p style={{fontFamily: settings.ceoDesc.font, fontSize: settings.ceoDesc.size, color: settings.ceoDesc.color}} className="italic max-w-xl leading-relaxed">
-                                    "{settings.ceoDesc.text}"
-                                </p>
-                            </div>
-                            
-                            <footer className="bg-white p-10 text-center border-t">
-                                <p style={{fontFamily: settings.footerText.font, fontSize: settings.footerText.size, color: settings.footerText.color}}>
-                                    {settings.footerText.text}
-                                </p>
-                            </footer>
+            if(view === "login") return (
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+                    <div className="bg-white w-full max-w-md p-8 rounded-[40px] shadow-xl text-center">
+                        <img src={settings.logo} className="w-16 h-16 mx-auto mb-6 rounded-full cursor-pointer" onClick={() => setView("landing")} />
+                        <h2 className="text-xl font-bold mb-6">প্রবেশ করুন</h2>
+                        <input id="l_email" type="email" placeholder="ইমেইল" className="w-full p-3 mb-3 border rounded-xl" />
+                        <input id="l_pass" type="password" placeholder="পাসওয়ার্ড" className="w-full p-3 mb-6 border rounded-xl" />
+                        <button onClick={() => handleLogin(document.getElementById('l_email').value, document.getElementById('l_pass').value)} className="w-full bg-blue-800 text-white py-3 rounded-xl font-bold">Login</button>
+                        <div className="flex justify-between mt-6 px-2">
+                            <button onClick={() => handleLogin("Guest", "Guest")} className="text-gray-400 text-xs font-bold uppercase">Guest Mode</button>
+                            <i className="fa-solid fa-lock text-gray-200 cursor-pointer" onClick={() => {
+                                const m = prompt("Admin Email:"); const p = prompt("Pass:");
+                                handleLogin(m,p);
+                            }}></i>
                         </div>
-                    )}
+                    </div>
+                </div>
+            );
+
+            if(view === "home") return (
+                <div className="min-h-screen bg-gray-50">
+                    <SiteHeader />
+                    <div className="py-12 px-6 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                        {settings.zones.map(z => (
+                            <ZoneItem key={z.id} z={z} user={user} />
+                        ))}
+                    </div>
+                    <div className="text-center py-10">
+                        <img src={settings.ceoImg} className="w-32 h-32 rounded-full border-4 border-white mx-auto shadow-lg mb-4" />
+                        <h3 style={{fontFamily: settings.title.font}} className="font-bold">Message from CEO</h3>
+                        <p className="italic mt-2" style={{fontFamily: settings.ceoMsg.font, fontSize: settings.ceoMsg.size, color: settings.ceoMsg.color}}>{settings.ceoMsg.text}</p>
+                    </div>
+                    <div className="text-center p-6 bg-white border-t">
+                        <p style={{fontFamily: settings.footer.font, fontSize: settings.footer.size, color: settings.footer.color}}>{settings.footer.text}</p>
+                    </div>
                 </div>
             );
         }
 
-        // --- SUB COMPONENTS ---
-
-        function ZoneCard({ z, user }) {
+        function ZoneItem({ z, user }) {
             const [sel, setSel] = useState("");
-            const [load, setLoad] = useState(false);
-
-            const handleSel = (val) => {
+            const [loading, setLoading] = useState(false);
+            const goLink = (val) => {
                 if(!val) return;
-                setLoad(true);
-                setTimeout(() => { setSel(val); setLoad(false); }, 2000);
+                setLoading(true);
+                setTimeout(() => { setSel(val); setLoading(false); }, 2000);
             };
-
             return (
-                <div className="zone-card p-8 flex flex-col items-center text-center">
-                    <div className="w-14 h-14 bg-blue-50 text-blue-800 rounded-full flex items-center justify-center mb-4 text-2xl shadow-inner"><i className="fa-solid fa-location-dot"></i></div>
-                    <h3 className="text-2xl font-bold text-gray-800">{z.title}</h3>
-                    <p className="text-gray-500 text-sm mt-1 mb-6 bg-gray-50 px-4 py-1 rounded-full">{z.area}</p>
-
+                <div className="zone-card p-6 flex flex-col items-center text-center">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-800 rounded-full flex items-center justify-center mb-4"><i className="fa-solid fa-location-dot"></i></div>
+                    <h3 className="font-bold text-lg">{z.name}</h3>
+                    <p className="text-xs text-gray-400 mb-4">{z.tags}</p>
                     {user.role === 'Tutor' && (
                         <div className="w-full">
                             {!sel ? (
-                                load ? <div className="flex justify-center py-2"><div className="spinner-sm !border-t-blue-800"></div></div> : (
-                                    <select className="w-full p-3 border rounded-xl font-bold text-sm" onChange={e => handleSel(e.target.value)}>
+                                loading ? <div className="spinner !w-6 !h-6 mx-auto"></div> : (
+                                    <select className="w-full p-2 border rounded-lg text-sm font-bold" onChange={e => goLink(e.target.value)}>
                                         <option value="">জেন্ডার সিলেক্ট করুন</option>
                                         <option value="male">আমি পুরুষ টিউটর</option>
                                         <option value="female">আমি মহিলা টিউটর</option>
                                     </select>
                                 )
                             ) : (
-                                <a href={sel === 'male' ? z.maleLink : z.femaleLink} target="_blank" className="block w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg animate-pulse">Join WhatsApp Group</a>
+                                <a href={sel === 'male' ? z.ml : z.fl} target="_blank" className="block w-full bg-green-600 text-white py-2 rounded-lg font-bold text-sm animate-pulse">Join Group</a>
                             )}
                         </div>
                     )}
-                    {user.role === 'Admin' && <div className="text-[10px] text-blue-500 font-bold">Admin: Links Configured</div>}
-                    {(user.role === 'Guardian' || user.role === 'Guest') && <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">View Mode</span>}
+                    {user.role === 'Admin' && <p className="text-[10px] text-blue-400 uppercase font-bold">Admin Managed</p>}
+                    {(user.role === 'Guardian' || user.role === 'Guest') && <p className="text-[10px] text-gray-300 font-bold uppercase">View Mode</p>}
                 </div>
             );
         }
 
-        function LoginPage({ login, setUsersDB, usersDB, navigate, settings }) {
-            const [isLog, setIsLog] = useState(true);
-            const [email, setEmail] = useState("");
-            const [pass, setPass] = useState("");
-            const [role, setRole] = useState("Tutor");
-
-            const last = JSON.parse(localStorage.getItem("tv_last_session"));
-
-            return (
-                <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-                    <div className="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl relative">
-                        <img src={settings.logo} className="w-16 h-16 mx-auto mb-6 rounded-full cursor-pointer" onClick={() => navigate("landing")} />
-                        
-                        {isLog && last && (
-                            <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center">
-                                <div className="text-xs font-bold">
-                                    <p>{last.email}</p>
-                                    <p className="opacity-50">{last.role}</p>
-                                </div>
-                                <button onClick={() => login(last.email, last.pass)} className="bg-blue-800 text-white px-4 py-2 rounded-xl text-xs font-bold">One-Click Entry</button>
-                            </div>
-                        )}
-
-                        <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
-                            <button onClick={() => setIsLog(true)} className={`flex-1 py-3 rounded-xl font-bold text-sm ${isLog ? 'bg-white shadow' : 'text-gray-400'}`}>লগইন</button>
-                            <button onClick={() => setIsLog(false)} className={`flex-1 py-3 rounded-xl font-bold text-sm ${!isLog ? 'bg-white shadow' : 'text-gray-400'}`}>সাইন আপ</button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <input type="email" placeholder="ইমেইল" className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" onChange={e => setEmail(e.target.value)} />
-                            <input type="password" placeholder="পাসওয়ার্ড" className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" onChange={e => setPass(e.target.value)} />
-                            {!isLog && (
-                                <select className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" onChange={e => setRole(e.target.value)}>
-                                    <option value="Tutor">আমি একজন টিউটর</option>
-                                    <option value="Guardian">আমি একজন অভিভাবক</option>
-                                </select>
-                            )}
-                            <button onClick={() => isLog ? login(email, pass) : (setUsersDB([...usersDB, {email, pass, role}]), alert("সফল!"))} className="w-full bg-blue-800 text-white py-4 rounded-2xl font-bold">
-                                {isLog ? "প্রবেশ করুন" : "রেজিস্ট্রেশন করুন"}
-                            </button>
-                        </div>
-
-                        <div className="mt-8 flex justify-between items-center">
-                            <button onClick={() => login("Guest", "Guest")} className="text-gray-400 text-xs font-bold uppercase">Guest Mode</button>
-                            <div className="admin-lock" onClick={() => {
-                                const m = prompt("Admin Email:"); const p = prompt("Password:");
-                                if(m && p) login(m,p);
-                            }}><i className="fa-solid fa-lock"></i></div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // --- ADMIN GEAR COMPONENT ---
-        function AdminGear({ settings, setSettings }) {
-            const [open, setOpen] = useState(false);
-
-            const StyleEdit = ({ label, target }) => (
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
-                    <p className="font-bold text-xs uppercase text-blue-900 border-b pb-1">{label}</p>
-                    <textarea value={settings[target].text} className="w-full p-2 border rounded-lg text-sm" onChange={e => setSettings({...settings, [target]: {...settings[target], text: e.target.value}})} />
-                    <div className="grid grid-cols-3 gap-2">
-                        <select className="text-[10px] p-1 border" value={settings[target].font} onChange={e => setSettings({...settings, [target]: {...settings[target], font: e.target.value}})}>
-                            {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+        function AdminControl({ settings, setSettings }) {
+            const [show, setShow] = useState(false);
+            const EditSec = ({ label, target }) => (
+                <div className="p-3 bg-gray-50 border rounded-xl mb-3">
+                    <p className="text-[10px] font-bold text-blue-900 mb-1">{label}</p>
+                    <textarea value={settings[target].text} className="w-full p-2 text-sm border mb-2" onChange={e => setSettings({...settings, [target]: {...settings[target], text: e.target.value}})} />
+                    <div className="flex gap-2">
+                        <select className="flex-1 text-[10px] p-1 border" value={settings[target].font} onChange={e => setSettings({...settings, [target]: {...settings[target], font: e.target.value}})}>
+                            {FONT_LIST.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
-                        <input type="text" className="text-[10px] p-1 border" value={settings[target].size} onChange={e => setSettings({...settings, [target]: {...settings[target], size: e.target.value}})} />
-                        <input type="color" className="h-6 w-full border" value={settings[target].color} onChange={e => setSettings({...settings, [target]: {...settings[target], color: e.target.value}})} />
+                        <input className="w-14 text-[10px] p-1 border" value={settings[target].size} onChange={e => setSettings({...settings, [target]: {...settings[target], size: e.target.value}})} />
+                        <input type="color" className="w-8 h-6 border" value={settings[target].color} onChange={e => setSettings({...settings, [target]: {...settings[target], color: e.target.value}})} />
                     </div>
                 </div>
             );
 
             return (
                 <>
-                    <i className="fa-solid fa-gear text-xl cursor-pointer" onClick={() => setOpen(true)}></i>
-                    {open && (
-                        <div className="fixed inset-0 bg-black/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
-                            <div className="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 shadow-2xl">
-                                <div className="flex justify-between mb-8">
-                                    <h2 className="text-2xl font-bold">Advanced Content Editor</h2>
-                                    <i className="fa-solid fa-xmark text-2xl cursor-pointer text-gray-400" onClick={() => setOpen(false)}></i>
+                    <i className="fa-solid fa-gear cursor-pointer" onClick={() => setShow(true)}></i>
+                    {show && (
+                        <div className="fixed inset-0 bg-black/80 z-[1000] p-4 flex items-center justify-center">
+                            <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 rounded-3xl">
+                                <div className="flex justify-between items-center mb-6 border-b pb-2">
+                                    <h2 className="font-bold">অ্যাডমিন কন্ট্রোল</h2>
+                                    <i className="fa-solid fa-xmark cursor-pointer" onClick={() => setShow(false)}></i>
                                 </div>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <StyleEdit label="Main Title" target="heroTitle" />
-                                    <StyleEdit label="Hero Motto" target="heroMotto" />
-                                    <StyleEdit label="About Section Title" target="aboutTitle" />
-                                    <StyleEdit label="About Description" target="aboutDesc" />
-                                    <StyleEdit label="CEO Section Title" target="ceoTitle" />
-                                    <StyleEdit label="CEO Message" target="ceoDesc" />
-                                    <StyleEdit label="Footer Text" target="footerText" />
-                                    
-                                    <div className="p-4 bg-blue-50 rounded-2xl border space-y-3">
-                                        <p className="font-bold text-xs uppercase text-blue-900 border-b">Global Styles & Images</p>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-[10px] font-bold">Banner Color</label>
-                                                <input type="color" className="w-full h-8" value={settings.bannerColor} onChange={e => setSettings({...settings, bannerColor: e.target.value})} />
-                                            </div>
-                                            <div className="flex flex-col gap-2">
-                                                <label className="bg-white p-2 border text-[10px] font-bold text-center cursor-pointer">LOGO UPLOAD <input type="file" className="hidden" onChange={e => {
-                                                    const f = e.target.files[0]; const r = new FileReader();
-                                                    r.onloadend = () => setSettings({...settings, logo: r.result}); if(f) r.readAsDataURL(f);
-                                                }} /></label>
-                                                <label className="bg-white p-2 border text-[10px] font-bold text-center cursor-pointer">CEO IMAGE <input type="file" className="hidden" onChange={e => {
-                                                    const f = e.target.files[0]; const r = new FileReader();
-                                                    r.onloadend = () => setSettings({...settings, ceoImg: r.result}); if(f) r.readAsDataURL(f);
-                                                }} /></label>
-                                            </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <EditSec label="Main Title" target="title" />
+                                    <EditSec label="Hero Motto" target="motto" />
+                                    <EditSec label="About Text" target="about" />
+                                    <EditSec label="CEO Message" target="ceoMsg" />
+                                    <EditSec label="Footer Text" target="footer" />
+                                    <div className="p-3 bg-blue-50 border rounded-xl">
+                                        <p className="text-[10px] font-bold mb-2">ব্র্যান্ডিং ও ইমেজ</p>
+                                        <div className="flex flex-col gap-2">
+                                            <input type="color" className="w-full h-8" value={settings.bannerColor} onChange={e => setSettings({...settings, bannerColor: e.target.value})} />
+                                            <label className="text-[10px] bg-white p-2 border cursor-pointer text-center">LOGO <input type="file" className="hidden" onChange={e => {
+                                                const f = e.target.files[0]; const r = new FileReader(); r.onloadend = () => setSettings({...settings, logo: r.result}); if(f) r.readAsDataURL(f);
+                                            }}/></label>
+                                            <label className="text-[10px] bg-white p-2 border cursor-pointer text-center">CEO IMAGE <input type="file" className="hidden" onChange={e => {
+                                                const f = e.target.files[0]; const r = new FileReader(); r.onloadend = () => setSettings({...settings, ceoImg: r.result}); if(f) r.readAsDataURL(f);
+                                            }}/></label>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="mt-8 pt-8 border-t">
-                                    <h3 className="font-bold mb-4 text-blue-900">Manage Tuition Zones</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {settings.zones.map(z => (
-                                            <div key={z.id} className="p-4 bg-gray-50 rounded-2xl border space-y-2">
-                                                <input value={z.title} className="w-full p-2 border rounded-lg text-sm font-bold" onChange={e => {
-                                                    const nz = settings.zones.map(x => x.id === z.id ? {...x, title: e.target.value} : x);
-                                                    setSettings({...settings, zones: nz});
-                                                }} />
-                                                <input value={z.area} className="w-full p-2 border rounded-lg text-xs" onChange={e => {
-                                                    const nz = settings.zones.map(x => x.id === z.id ? {...x, area: e.target.value} : x);
-                                                    setSettings({...settings, zones: nz});
-                                                }} />
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <input value={z.maleLink} className="p-1 border text-[10px] text-blue-600" placeholder="Male Link" onChange={e => {
-                                                        const nz = settings.zones.map(x => x.id === z.id ? {...x, maleLink: e.target.value} : x);
-                                                        setSettings({...settings, zones: nz});
-                                                    }} />
-                                                    <input value={z.femaleLink} className="p-1 border text-[10px] text-pink-600" placeholder="Female Link" onChange={e => {
-                                                        const nz = settings.zones.map(x => x.id === z.id ? {...x, femaleLink: e.target.value} : x);
-                                                        setSettings({...settings, zones: nz});
-                                                    }} />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <button onClick={() => setOpen(false)} className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold mt-8 shadow-lg">Save & Close</button>
+                                <button onClick={() => setShow(false)} className="w-full bg-green-600 text-white py-3 mt-6 rounded-xl font-bold">সেভ করুন</button>
                             </div>
                         </div>
                     )}
