@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutors Valley | ঢাকার শহরের সেরা হোম টিউটর প্ল্যাটফর্ম</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .zone-card { transition: all 0.3s ease; border-radius: 24px; background: white; border: 1px solid #f0f0f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .zone-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .header-center { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; pointer-events: none; }
+        .header-logo { width: 42px; height: 42px; border-radius: 50%; border: 2px solid white; object-fit: cover; pointer-events: auto; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #1e3a8a; border-radius: 50%; width: 22px; height: 22px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .admin-lock { opacity: 0.1; cursor: pointer; transition: 0.3s; }
+        .admin-lock:hover { opacity: 1; color: #1e3a8a; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const ADMIN_EMAIL = "kabirhasanat7@gmail.com";
+        const ADMIN_PASS = "admin1";
+        const SESSION_LIMIT = 5 * 60 * 1000;
+
+        const INITIAL_ZONES = [
+            { id: 1, title: "Uttara", area: "Sector 1-14, Azampur", maleLink: "https://chat.whatsapp.com/G3p...", femaleLink: "https://chat.whatsapp.com/L2x..." },
+            { id: 2, title: "Gulshan", area: "Gulshan 1, 2, Banani", maleLink: "#", femaleLink: "#" },
+            { id: 3, title: "Dhanmondi", area: "Road 15, 27, Zigatola", maleLink: "#", femaleLink: "#" },
+            { id: 4, title: "Mirpur", area: "Mirpur 1, 10, Pallabi", maleLink: "#", femaleLink: "#" },
+            { id: 5, title: "Mohammadpur", area: "Adabor, Town Hall", maleLink: "#", femaleLink: "#" },
+            { id: 6, title: "Badda", area: "Rampura, Banasree", maleLink: "#", femaleLink: "#" }
+        ];
+
+        function TutorsValley() {
+            const [view, setView] = useState("landing");
+            const [user, setUser] = useState(JSON.parse(localStorage.getItem("tv_user")) || null);
+            const [usersDB, setUsersDB] = useState(JSON.parse(localStorage.getItem("tv_db")) || []);
+            const [settings, setSettings] = useState(JSON.parse(localStorage.getItem("tv_settings")) || {
+                title: "Tutors Valley",
+                motto: "ঢাকার শহরে আমরাই দিচ্ছি সেরা টিউটর",
+                about: "Tutors Valley হলো ঢাকার একটি নির্ভরযোগ্য টিউটর প্ল্যাটফর্ম। আমরা শিক্ষার্থী ও দক্ষ গৃহশিক্ষকদের মধ্যে একটি বিশ্বস্ত সেতুবন্ধন তৈরি করি। আমাদের মাধ্যমে আপনি আপনার এলাকার সেরা টিউটরটি সহজেই খুঁজে পাবেন।",
+                bannerColor: "#1e3a8a",
+                titleFont: "Poppins",
+                bodyFont: "Hind Siliguri",
+                logo: "https://i.ibb.co/hRT1DFmF/logo.png",
+                ceoImg: "https://i.ibb.co/Gvm6RLwW/ceo.png",
+                ceoText: "গুণগত শিক্ষা ও বিশ্বস্ততা আমাদের মূল লক্ষ্য।",
+                zones: INITIAL_ZONES
+            });
+
+            // Sync States
+            useEffect(() => {
+                localStorage.setItem("tv_settings", JSON.stringify(settings));
+                localStorage.setItem("tv_db", JSON.stringify(usersDB));
+                if(user) {
+                    localStorage.setItem("tv_user", JSON.stringify(user));
+                    localStorage.setItem("tv_last_session", JSON.stringify(user));
+                    setView("home");
+                }
+            }, [user, settings, usersDB]);
+
+            // Inactivity Monitor
+            useEffect(() => {
+                let timer;
+                const activity = () => {
+                    clearTimeout(timer);
+                    if(user && view === "home") {
+                        timer = setTimeout(() => { setView("login"); }, SESSION_LIMIT);
+                    }
+                };
+                window.onmousemove = activity;
+                window.onclick = activity;
+                return () => clearTimeout(timer);
+            }, [user, view]);
+
+            const login = (e, p) => {
+                if(e === ADMIN_EMAIL && p === ADMIN_PASS) return setUser({email: e, role: "Admin"});
+                const u = usersDB.find(x => x.email === e && x.pass === p);
+                if(u) setUser(u); else alert("ভুল ইমেইল বা পাসওয়ার্ড!");
+            };
+
+            const signup = (e, p, r) => {
+                if(usersDB.find(x => x.email === e)) return alert("এই ইমেইলটি আগে থেকেই ব্যবহৃত!");
+                setUsersDB([...usersDB, {email: e, pass: p, role: r}]);
+                alert("রেজিস্ট্রেশন সফল! এখন লগইন করুন।");
+            };
+
+            // --- Views ---
+            if (view === "landing") return (
+                <div className="min-h-screen flex flex-col items-center py-12 px-6 text-center" style={{fontFamily: settings.bodyFont}}>
+                    <img src={settings.logo} className="w-32 h-32 rounded-full border-4 border-white shadow-xl mb-6" />
+                    <h1 className="text-4xl font-bold mb-2" style={{color: settings.bannerColor, fontFamily: settings.titleFont}}>{settings.title}</h1>
+                    <p className="text-xl text-blue-700 font-bold mb-10">{settings.motto}</p>
+                    <div className="max-w-3xl bg-white p-8 rounded-3xl shadow-sm border mb-12">
+                        <h2 className="text-2xl font-bold mb-4 text-gray-800">আমাদের সম্পর্কে</h2>
+                        <p className="text-gray-600 text-lg">{settings.about}</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mb-12">
+                        {settings.zones.map(z => (
+                            <div key={z.id} className="bg-white p-6 rounded-2xl shadow-sm border">
+                                <h3 className="font-bold text-xl">{z.title}</h3>
+                                <p className="text-blue-500 text-sm">{z.area}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <button onClick={() => setView("login")} className="bg-blue-800 text-white px-12 py-4 rounded-full text-xl font-bold shadow-2xl active:scale-95 transition">Login / Join Now</button>
+                </div>
+            );
+
+            if (view === "login") {
+                const lastUser = JSON.parse(localStorage.getItem("tv_last_session"));
+                return (
+                    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+                        <div className="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl relative">
+                            <img src={settings.logo} className="w-16 h-16 mx-auto mb-6 rounded-full" />
+                            
+                            {lastUser && (
+                                <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center">
+                                    <div className="text-xs">
+                                        <p className="font-bold">{lastUser.email}</p>
+                                        <p className="opacity-50">{lastUser.role}</p>
+                                    </div>
+                                    <button onClick={() => setUser(lastUser)} className="bg-blue-800 text-white px-4 py-2 rounded-xl text-xs font-bold">এক ক্লিকে প্রবেশ</button>
+                                </div>
+                            )}
+
+                            <LoginUI onLogin={login} onSignup={signup} />
+
+                            <div className="mt-8 flex justify-between items-center">
+                                <button onClick={() => setUser({email: "Guest", role: "Guest"})} className="text-gray-400 text-xs font-bold">Guest Mode</button>
+                                <div className="admin-lock" onClick={() => {
+                                    const m = prompt("Admin Email:");
+                                    const p = prompt("Password:");
+                                    if(m === ADMIN_EMAIL && p === ADMIN_PASS) setUser({email: m, role: "Admin"});
+                                }}><i className="fa-solid fa-lock"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === "home") return (
+                <Home settings={settings} setSettings={setSettings} user={user} onLogout={() => { setUser(null); localStorage.removeItem("tv_user"); setView("landing"); }} />
+            );
+        }
+
+        function LoginUI({ onLogin, onSignup }) {
+            const [isLog, setIsLog] = useState(true);
+            const [em, setEm] = useState("");
+            const [ps, setPs] = useState("");
+            const [rl, setRl] = useState("Tutor");
+
+            return (
+                <div className="space-y-4">
+                    <div className="flex bg-gray-100 p-1 rounded-2xl mb-4">
+                        <button onClick={() => setIsLog(true)} className={`flex-1 py-3 rounded-xl font-bold text-sm ${isLog ? 'bg-white shadow' : 'text-gray-400'}`}>লগইন</button>
+                        <button onClick={() => setIsLog(false)} className={`flex-1 py-3 rounded-xl font-bold text-sm ${!isLog ? 'bg-white shadow' : 'text-gray-400'}`}>সাইন আপ</button>
+                    </div>
+                    <input type="email" placeholder="ইমেইল" className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" onChange={e => setEm(e.target.value)} />
+                    <input type="password" placeholder="পাসওয়ার্ড" className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" onChange={e => setPs(e.target.value)} />
+                    {!isLog && (
+                        <select className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" onChange={e => setRl(e.target.value)}>
+                            <option value="Tutor">আমি একজন টিউটর</option>
+                            <option value="Guardian">আমি একজন অভিভাবক</option>
+                        </select>
+                    )}
+                    <button onClick={() => isLog ? onLogin(em, ps) : onSignup(em, ps, rl)} className="w-full bg-blue-800 text-white py-4 rounded-2xl font-bold shadow-lg">
+                        {isLog ? "প্রবেশ করুন" : "রেজিস্ট্রেশন করুন"}
+                    </button>
+                </div>
+            );
+        }
+
+        function Home({ settings, setSettings, user, onLogout }) {
+            const [adminPanel, setAdminPanel] = useState(false);
+            const [loading, setLoading] = useState(null);
+            const [gender, setGender] = useState({});
+
+            const updateZone = (id, field, val) => {
+                const newZones = settings.zones.map(z => z.id === id ? {...z, [field]: val} : z);
+                setSettings({...settings, zones: newZones});
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 pb-20" style={{fontFamily: settings.bodyFont}}>
+                    {/* Header */}
+                    <div className="text-white h-24 flex items-center px-6 sticky top-0 z-50 shadow-xl" style={{backgroundColor: settings.bannerColor}}>
+                        <div className="flex-1">
+                            {user.role === 'Admin' && <i className="fa-solid fa-gear text-xl cursor-pointer hover:rotate-90 transition-all" onClick={() => setAdminPanel(true)}></i>}
+                        </div>
+                        <div className="header-center">
+                            <img src={settings.logo} className="header-logo mx-auto" />
+                            <h1 className="font-bold text-lg mt-1" style={{fontFamily: settings.titleFont}}>{settings.title}</h1>
+                        </div>
+                        <div className="flex-1 flex justify-end items-center gap-4">
+                            <a href="https://facebook.com" target="_blank"><i className="fa-brands fa-facebook text-2xl"></i></a>
+                            <button onClick={onLogout} className="bg-red-500 px-4 py-2 rounded-full text-xs font-bold uppercase">Logout</button>
+                        </div>
+                    </div>
+
+                    <div className="w-full py-16 text-center bg-white border-b mb-10">
+                        <h2 className="text-3xl font-bold text-blue-900" style={{fontFamily: settings.titleFont}}>Tuition Zones</h2>
+                        <p className="text-gray-400 mt-2">{settings.motto}</p>
+                    </div>
+
+                    {/* Cards */}
+                    <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {settings.zones.map(z => (
+                            <div key={z.id} className="zone-card p-8 flex flex-col items-center text-center">
+                                <div className="w-14 h-14 bg-blue-50 text-blue-800 rounded-full flex items-center justify-center mb-4 text-2xl shadow-inner"><i className="fa-solid fa-location-dot"></i></div>
+                                <h3 className="text-2xl font-bold text-gray-800">{z.title}</h3>
+                                <p className="text-gray-500 text-sm mt-1 mb-6 bg-gray-50 px-4 py-1 rounded-full">{z.area}</p>
+
+                                {user.role === 'Tutor' && (
+                                    <div className="w-full">
+                                        {!gender[z.id] ? (
+                                            loading === z.id ? (
+                                                <div className="flex justify-center py-2"><div className="loader"></div></div>
+                                            ) : (
+                                                <select className="w-full p-3 border rounded-xl font-bold text-sm bg-gray-50" onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    if(!val) return;
+                                                    setLoading(z.id);
+                                                    setTimeout(() => { setGender({...gender, [z.id]: val}); setLoading(null); }, 2000);
+                                                }}>
+                                                    <option value="">জেন্ডার সিলেক্ট করুন</option>
+                                                    <option value="male">আমি পুরুষ টিউটর</option>
+                                                    <option value="female">আমি মহিলা টিউটর</option>
+                                                </select>
+                                            )
+                                        ) : (
+                                            <a 
+                                                href={gender[z.id] === 'male' ? z.maleLink : z.femaleLink} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="block w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg animate-pulse text-center"
+                                            >
+                                                Join WhatsApp Group
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
+
+                                {user.role === 'Admin' && (
+                                    <div className="flex gap-2 w-full">
+                                        <a href={z.maleLink} target="_blank" className="flex-1 bg-blue-800 text-white py-2 rounded-xl text-[10px] font-bold text-center">MALE LINK</a>
+                                        <a href={z.femaleLink} target="_blank" className="flex-1 bg-blue-800 text-white py-2 rounded-xl text-[10px] font-bold text-center">FEMALE LINK</a>
+                                    </div>
+                                )}
+
+                                {(user.role === 'Guardian' || user.role === 'Guest') && <span className="text-xs text-gray-400 font-bold uppercase">View Only</span>}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* CEO */}
+                    <div className="mt-24 flex flex-col items-center text-center px-6">
+                        <img src={settings.ceoImg} className="w-36 h-36 rounded-full border-4 border-white shadow-2xl mb-4 object-cover" />
+                        <h2 className="text-2xl font-bold">Message From CEO</h2>
+                        <p className="text-gray-500 italic max-w-xl mt-2 leading-relaxed">"{settings.ceoText}"</p>
+                    </div>
+
+                    {/* Admin Panel */}
+                    {adminPanel && (
+                        <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+                            <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl p-8">
+                                <div className="flex justify-between items-center mb-8 border-b pb-4">
+                                    <h2 className="text-2xl font-bold">Admin Panel</h2>
+                                    <i className="fa-solid fa-xmark text-2xl cursor-pointer" onClick={() => setAdminPanel(false)}></i>
+                                </div>
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <label className="text-xs font-bold text-gray-400">Settings</label>
+                                            <input value={settings.title} className="w-full p-3 border rounded-xl" onChange={e => setSettings({...settings, title: e.target.value})} />
+                                            <input value={settings.motto} className="w-full p-3 border rounded-xl" onChange={e => setSettings({...settings, motto: e.target.value})} />
+                                            <input type="color" value={settings.bannerColor} className="w-full h-12 rounded-xl" onChange={e => setSettings({...settings, bannerColor: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <label className="text-xs font-bold text-gray-400">Fonts & CEO</label>
+                                            <textarea className="w-full p-3 border rounded-xl text-sm" value={settings.ceoText} onChange={e => setSettings({...settings, ceoText: e.target.value})} />
+                                            <div className="flex gap-2">
+                                                <label className="flex-1 bg-blue-50 p-3 rounded-xl text-center text-[10px] font-bold cursor-pointer">LOGO <input type="file" className="hidden" onChange={e => {
+                                                    const f = e.target.files[0];
+                                                    const r = new FileReader();
+                                                    r.onloadend = () => setSettings({...settings, logo: r.result});
+                                                    if(f) r.readAsDataURL(f);
+                                                }} /></label>
+                                                <label className="flex-1 bg-blue-50 p-3 rounded-xl text-center text-[10px] font-bold cursor-pointer">CEO IMAGE <input type="file" className="hidden" onChange={e => {
+                                                    const f = e.target.files[0];
+                                                    const r = new FileReader();
+                                                    r.onloadend = () => setSettings({...settings, ceoImg: r.result});
+                                                    if(f) r.readAsDataURL(f);
+                                                }} /></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="border-t pt-6">
+                                        <h3 className="font-bold mb-4 text-blue-900">Tuition Zones Manager</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {settings.zones.map(z => (
+                                                <div key={z.id} className="p-4 bg-gray-50 rounded-2xl border space-y-2">
+                                                    <input value={z.title} className="w-full p-2 border rounded-lg text-sm font-bold" onChange={e => updateZone(z.id, 'title', e.target.value)} />
+                                                    <input value={z.area} className="w-full p-2 border rounded-lg text-xs" onChange={e => updateZone(z.id, 'area', e.target.value)} />
+                                                    <input value={z.maleLink} className="w-full p-2 border rounded-lg text-[10px] text-blue-600" placeholder="Male Link" onChange={e => updateZone(z.id, 'maleLink', e.target.value)} />
+                                                    <input value={z.femaleLink} className="w-full p-2 border rounded-lg text-[10px] text-pink-600" placeholder="Female Link" onChange={e => updateZone(z.id, 'femaleLink', e.target.value)} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setAdminPanel(false)} className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold">Save & Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TutorsValley />);
+    </script>
+</body>
+</html>
