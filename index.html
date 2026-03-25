@@ -3,385 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tutors Valley | Home Tutors in Dhaka</title>
-    
-    <!-- External Libraries -->
+    <title>Tutors Valley | Live Cloud Edition</title>
+   
+    <!-- Fonts & Scripts -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;700&family=Noto+Sans+Bengali:wght@400;700&family=Inter:wght@400;700&family=Montserrat:wght@800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- 30 Selected Fonts (15 EN + 15 BN) -->
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&family=Anek+Bangla:wght@400;700&family=Mina&family=Atma&family=Galada&family=Li+Adador+Lipi&family=Siyam+Rupali&family=Noto+Serif+Bengali&family=Tiro+Bangla&family=Kalpurush&family=SolaimanLipi&family=AdorshoLipi&family=Nikosh&family=SutonnyBangla&family=Charukola+Ultra+Light&family=Poppins:wght@400;700&family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans&family=Lato&family=Oswald&family=Raleway&family=Ubuntu&family=Merriweather&family=Playfair+Display&family=Lora&family=Nunito&family=Kanit&family=Bebas+Neue&family=Pacifico&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+   
+    <!-- Firebase SDK (Compatible Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        body { margin: 0; padding: 0; transition: background 0.3s; overflow-x: hidden; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #1e3a8a; border-radius: 50%; animation: spin 1s linear infinite; }
-        .spinner-sm { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #1e3a8a; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .page-loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .zone-card { border-radius: 25px; background: white; border: 1px solid #eee; transition: 0.3s; padding: 30px; }
-        .zone-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .admin-lock { opacity: 0.1; cursor: pointer; transition: 0.3s; }
-        .admin-lock:hover { opacity: 1; color: #1e3a8a; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 10px; }
+        :root { --primary: #001f3f; }
+        body { background-color: #f8fafc; font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .rounded-24 { border-radius: 24px; }
+        .shadow-premium { box-shadow: 0 20px 50px rgba(0, 31, 63, 0.05); }
+        input:focus { outline: none; border-color: var(--primary); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+       
+        #boot-loader {
+            position: fixed; inset: 0; background: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
+    <div id="boot-loader">
+        <div style="width: 40px; height: 40px; border: 4px solid #001f3f; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 15px; font-weight: bold; color: #001f3f;">Tutors Valley Cloud Connecting...</p>
+    </div>
+
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
+        const { motion, AnimatePresence } = window.Motion;
 
-        const ADMIN_INFO = { email: "kabirhasanat7@gmail.com", pass: "admin1" };
-        const ALL_FONTS = [
-            "Hind Siliguri", "Anek Bangla", "Mina", "Atma", "Galada", "Li Adador Lipi", "Siyam Rupali", "Noto Serif Bengali", "Tiro Bangla", "SolaimanLipi", "Kalpurush", "AdorshoLipi", "Nikosh", "SutonnyBangla", "Charukola Ultra Light",
-            "Poppins", "Roboto", "Montserrat", "Open Sans", "Lato", "Oswald", "Raleway", "Ubuntu", "Merriweather", "Playfair Display", "Lora", "Nunito", "Kanit", "Bebas Neue", "Pacifico"
-        ];
+        // --- FIREBASE CONFIG (Updated with your Keys) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8Fn2Ew5XnvxMIgorzD40-7stW5G_AKVw",
+            authDomain: "tutors-valley-b2d4c.firebaseapp.com",
+            databaseURL: "https://tutors-valley-b2d4c-default-rtdb.firebaseio.com/",
+            projectId: "tutors-valley-b2d4c",
+            storageBucket: "tutors-valley-b2d4c.firebasestorage.app",
+            messagingSenderId: "672117828971",
+            appId: "1:672117828971:web:541c28538673653b04f02e"
+        };
 
-        function TutorsValley() {
-            const [view, setView] = useState("landing"); // landing, login, home
-            const [loading, setLoading] = useState(true);
-            const [user, setUser] = useState(JSON.parse(localStorage.getItem("tv_user")) || null);
-            const [db, setDb] = useState(JSON.parse(localStorage.getItem("tv_db")) || []);
-            const [tempUI, setTempUI] = useState({}); 
+        // Initialize Firebase
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-            const [set, setSet] = useState(JSON.parse(localStorage.getItem("tv_settings")) || {
-                bannerColor: "#1e3a8a",
-                logo: "https://i.ibb.co/hRT1DFmF/logo.png",
-                ceoImg: "https://i.ibb.co/Gvm6RLwW/ceo.png",
-                
-                // Section Styles
-                sHeader: { text: "Tutors Valley", font: "Poppins", size: "18px", color: "#ffffff" },
-                sHero: { text: "Tutors Valley", font: "Poppins", size: "48px", color: "#1e3a8a" },
-                sMotto: { text: "ঢাকার শহরে আমরাই দিচ্ছি সেরা টিউটর", font: "Hind Siliguri", size: "22px", color: "#3b82f6" },
-                sAboutTitle: { text: "আমাদের সম্পর্কে", font: "Hind Siliguri", size: "30px", color: "#111827" },
-                sAboutDesc: { text: "Tutors Valley হলো ঢাকার একটি বিশ্বস্ত প্ল্যাটফর্ম। আমরা শিক্ষার্থী ও অভিজ্ঞ গৃহশিক্ষকদের মধ্যে একটি নির্ভরযোগ্য সেতুবন্ধন তৈরি করি।", font: "Hind Siliguri", size: "18px", color: "#4b5563" },
-                sCeoTitle: { text: "Message From CEO", font: "Poppins", size: "26px", color: "#111827" },
-                sCeoMsg: { text: "গুণগত শিক্ষা ও বিশ্বস্ততা নিশ্চিত করাই আমাদের প্রধান লক্ষ্য।", font: "Hind Siliguri", size: "16px", color: "#6b7280" },
-                sFooter: { text: "© 2024 Tutors Valley. All Rights Reserved.", font: "Poppins", size: "14px", color: "#9ca3af" },
+        const DEFAULT_CONFIG = {
+            themeColor: '#001f3f',
+            logo: 'https://i.ibb.co.com/hRT1DFmF/logo.png',
+            ceoImg: 'https://i.ibb.co.com/Gvm6RLwW/ceo.png',
+            texts: {
+                brandingName: { val: "Tutors Valley", font: "Montserrat", size: 26, color: "#ffffff" },
+                motto: { val: "ঢাকার শহরে আমরাই দিচ্ছি সেরা টিউটর", font: "Hind Siliguri", size: 12, color: "#cbd5e1" },
+                heroTitle: { val: "খুঁজে নিন আপনার এরিয়ার সেরা হোম টিউটর", font: "Hind Siliguri", size: 40, color: "#001f3f" },
+                aboutDesc: { val: "Tutors Valley is a trusted platform for finding home tutors in Dhaka.", font: "Inter", size: 16, color: "#475569" },
+                ceoName: { val: "Kabir Hasanat", font: "Poppins", size: 24, color: "#001f3f" },
+                ceoTitle: { val: "CEO, Tutors Valley", font: "Inter", size: 14, color: "#64748b" },
+                footerText: { val: "© 2024 Tutors Valley. All Rights Reserved.", font: "Inter", size: 12, color: "#94a3b8" }
+            },
+            zones: [
+                { id: 1, name: "Uttara", tags: "Sector 1-14", m: "https://wa.me/1", f: "https://wa.me/2" },
+                { id: 2, name: "Mirpur", tags: "Mirpur 1, 10, DOHS", m: "https://wa.me/3", f: "https://wa.me/4" },
+                { id: 3, name: "Gulshan", tags: "Gulshan, Banani", m: "https://wa.me/5", f: "https://wa.me/6" },
+                { id: 4, name: "Dhanmondi", tags: "Road 1-32", m: "https://wa.me/7", f: "https://wa.me/8" },
+                { id: 5, name: "Bashundhara", tags: "Block A-L", m: "https://wa.me/9", f: "https://wa.me/10" },
+                { id: 6, name: "Mohammadpur", tags: "Town Hall", m: "https://wa.me/11", f: "https://wa.me/12" }
+            ]
+        };
 
-                zones: [
-                    { id: 1, title: "Uttara", area: "Sector 1-14, Azampur", ml: "#", fl: "#" },
-                    { id: 2, title: "Gulshan", area: "Gulshan 1, 2, Banani", ml: "#", fl: "#" },
-                    { id: 3, title: "Dhanmondi", area: "Road 15, 27, Zigatola", ml: "#", fl: "#" },
-                    { id: 4, title: "Mirpur", area: "Mirpur 1, 10, Pallabi", ml: "#", fl: "#" },
-                    { id: 5, title: "Mohammadpur", area: "Adabor, Town Hall", ml: "#", fl: "#" },
-                    { id: 6, title: "Badda", area: "Rampura, Banasree", ml: "#", fl: "#" }
-                ]
-            });
+        const FONT_OPTIONS = ["Inter", "Poppins", "Montserrat", "Hind Siliguri", "Noto Sans Bengali", "Pacifico", "Bebas Neue"];
+
+        function App() {
+            const [page, setPage] = useState('landing');
+            const [user, setUser] = useState(null);
+            const [config, setConfig] = useState(DEFAULT_CONFIG);
+            const [isAdminOpen, setAdminOpen] = useState(false);
+            const [isInitialLoad, setIsInitialLoad] = useState(true);
 
             useEffect(() => {
-                localStorage.setItem("tv_settings", JSON.stringify(set));
-                localStorage.setItem("tv_db", JSON.stringify(db));
-                if(user) {
-                    localStorage.setItem("tv_user", JSON.stringify(user));
-                    localStorage.setItem("tv_last", JSON.stringify(user));
-                    setView("home");
-                }
-                setTimeout(() => setLoading(false), 1000);
-            }, [set, db, user]);
-
-            // 5 Min Inactivity Reset (Gender Only)
-            useEffect(() => {
-                let timer;
-                const reset = () => setTempUI({});
-                const act = () => { clearTimeout(timer); timer = setTimeout(reset, 5 * 60 * 1000); };
-                window.onmousemove = act;
-                return () => clearTimeout(timer);
+                const configRef = db.ref('siteConfig');
+                configRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) setConfig(data);
+                    else db.ref('siteConfig').set(DEFAULT_CONFIG);
+                   
+                    const session = localStorage.getItem('tv_session');
+                    if (session) { setUser(JSON.parse(session)); setPage('home'); }
+                   
+                    setIsInitialLoad(false);
+                    if(document.getElementById('boot-loader')) document.getElementById('boot-loader').style.display = 'none';
+                });
             }, []);
 
-            const navigate = (to) => {
-                setLoading(true);
-                setTimeout(() => { setView(to); setLoading(false); }, 800);
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [page, isAdminOpen]);
+
+            const saveToFirebase = (newConfig) => {
+                setConfig(newConfig);
+                return db.ref('siteConfig').set(newConfig);
             };
 
-            const handleLogin = (e, p) => {
-                if(e === ADMIN_INFO.email && p === ADMIN_INFO.pass) {
-                    setUser({ email: e, role: "Admin" });
-                    navigate("home");
-                } else {
-                    const found = db.find(u => u.email === e && u.pass === p);
-                    if(found) { setUser(found); navigate("home"); }
-                    else alert("ভুল ইমেইল অথবা পাসওয়ার্ড!");
-                }
+            const login = (userData) => {
+                setUser(userData);
+                localStorage.setItem('tv_session', JSON.stringify(userData));
+                setPage('home');
             };
 
-            const handleSignup = (e, p, r) => {
-                if(db.find(u => u.email === e)) return alert("এই ইমেইলটি ইতিমধ্যে ব্যবহৃত হয়েছে!");
-                setDb([...db, { email: e, pass: p, role: r }]);
-                alert("রেজিস্ট্রেশন সফল হয়েছে!");
+            const logout = () => {
+                localStorage.removeItem('tv_session');
+                setUser(null);
+                setPage('landing');
             };
 
-            const Header = () => (
-                <div className="w-full flex justify-between items-center p-6 shadow-sm" style={{backgroundColor: set.bannerColor}}>
-                    <div className="w-10">
-                        {user?.role === 'Admin' && <AdminGear set={set} setSet={setSet} />}
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <img src={set.logo} className="w-10 h-10 rounded-full border-2 border-white mb-1" />
-                        <h1 style={{fontFamily: set.sHeader.font, fontSize: "16px", color: set.sHeader.color}} className="font-bold">
-                            {set.sHeader.text}
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <a href="#" className="text-white text-xl"><i className="fa-brands fa-facebook"></i></a>
-                        {user && <button onClick={() => { localStorage.removeItem("tv_user"); setUser(null); navigate("landing"); }} className="bg-red-500 text-white px-3 py-1 rounded text-[10px] font-bold">LOGOUT</button>}
-                    </div>
+            const getTextStyle = (key) => ({
+                fontFamily: config.texts[key].font,
+                fontSize: `${config.texts[key].size}px`,
+                color: config.texts[key].color,
+                fontWeight: 'bold'
+            });
+
+            if (isInitialLoad) return null;
+
+            return (
+                <div style={{'--primary': config.themeColor}}>
+                    {page === 'landing' && <LandingView config={config} setPage={setPage} getTextStyle={getTextStyle} />}
+                    {page === 'login' && <LoginView config={config} login={login} />}
+                    {page === 'home' && (
+                        <HomeView user={user} config={config} logout={logout} openAdmin={() => setAdminOpen(true)} getTextStyle={getTextStyle} />
+                    )}
+                    <AnimatePresence>
+                        {isAdminOpen && <AdminPanel config={config} save={saveToFirebase} close={() => setAdminOpen(false)} />}
+                    </AnimatePresence>
                 </div>
             );
+        }
 
-            if(loading) return <div className="page-loader"><div className="spinner"></div></div>;
+        function LandingView({ config, setPage, getTextStyle }) {
+            return (
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
+                    <img src={config.logo} className="w-20 mb-4" />
+                    <h1 style={{...getTextStyle('brandingName'), color: config.themeColor}}>{config.texts.brandingName.val}</h1>
+                    <p style={{...getTextStyle('motto'), color: '#64748b'}} className="mb-12 opacity-60 uppercase tracking-widest">{config.texts.motto.val}</p>
+                    <h2 style={getTextStyle('heroTitle')} className="mb-6 max-w-2xl leading-tight">{config.texts.heroTitle.val}</h2>
+                    <p style={getTextStyle('aboutDesc')} className="max-w-xl mb-10 font-normal opacity-70 leading-relaxed">{config.texts.aboutDesc.val}</p>
+                    <button onClick={() => setPage('login')} className="bg-[var(--primary)] text-white px-10 py-4 rounded-24 font-bold text-lg shadow-xl hover:scale-105 active:scale-95 transition-all">লগইন / জয়েন করুন</button>
+                </motion.div>
+            );
+        }
 
-            // --- LANDING PAGE ---
-            if(view === "landing") return (
-                <div className="min-h-screen">
-                    <Header />
-                    <div className="flex flex-col items-center py-16 px-6 text-center">
-                        <img src={set.logo} className="w-36 h-36 rounded-full border-4 border-white shadow-2xl mb-8" />
-                        <h1 style={{fontFamily: set.sHero.font, fontSize: set.sHero.size, color: set.sHero.color}} className="font-bold mb-2">
-                            {set.sHero.text}
-                        </h1>
-                        <p style={{fontFamily: set.sMotto.font, fontSize: set.sMotto.size, color: set.sMotto.color}} className="font-bold mb-14">
-                            {set.sMotto.text}
-                        </p>
-                        
-                        <div className="max-w-3xl bg-white p-10 rounded-[40px] shadow-sm border mb-16">
-                            <h2 style={{fontFamily: set.sAboutTitle.font, fontSize: set.sAboutTitle.size, color: set.sAboutTitle.color}} className="font-bold mb-4">
-                                {set.sAboutTitle.text}
-                            </h2>
-                            <p style={{fontFamily: set.sAboutDesc.font, fontSize: set.sAboutDesc.size, color: set.sAboutDesc.color}} className="leading-relaxed">
-                                {set.sAboutDesc.text}
-                            </p>
+        function LoginView({ config, login }) {
+            const [mode, setMode] = useState('login');
+            const [showPass, setShowPass] = useState(false);
+            const [email, setEmail] = useState('');
+            const [pass, setPass] = useState('');
+            const [role, setRole] = useState('tutor');
+
+            return (
+                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="min-h-screen flex items-center justify-center p-4">
+                    <div className="bg-white p-8 rounded-24 shadow-premium w-full max-w-md border border-slate-100">
+                        <div className="flex flex-col items-center mb-6">
+                            <img src={config.logo} className="w-14 mb-2" />
+                            <h2 className="text-xl font-bold text-[var(--primary)]">Account Access</h2>
                         </div>
-                        
-                        <button onClick={() => navigate("login")} className="bg-blue-800 text-white px-14 py-4 rounded-full text-xl font-bold shadow-2xl hover:scale-105 active:scale-95 transition">
-                            Login / Join Now
-                        </button>
-                        
-                        <footer className="mt-24 p-6 border-t w-full">
-                            <p style={{fontFamily: set.sFooter.font, fontSize: set.sFooter.size, color: set.sFooter.color}}>{set.sFooter.text}</p>
-                        </footer>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            if(email === 'kabirhasanat7@gmail.com' && pass === 'admin1') login({email, role:'admin', name:'Admin'});
+                            else login({email, role, name: email.split('@')[0]});
+                        }} className="space-y-4">
+                            <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
+                                <button type="button" onClick={() => setRole('tutor')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${role === 'tutor' ? 'bg-white shadow text-[var(--primary)]' : 'text-gray-400'}`}>টিউটর</button>
+                                <button type="button" onClick={() => setRole('guardian')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${role === 'guardian' ? 'bg-white shadow text-[var(--primary)]' : 'text-gray-400'}`}>গার্ডিয়ান</button>
+                            </div>
+                            <input required type="email" placeholder="ইমেইল" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 bg-slate-100 rounded-xl outline-none" />
+                            <div className="relative">
+                                <input required type={showPass ? "text" : "password"} placeholder="পাসওয়ার্ড" value={pass} onChange={e => setPass(e.target.value)} className="w-full p-4 bg-slate-100 rounded-xl outline-none" />
+                                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-4 text-gray-400"><i data-lucide={showPass ? "eye-off" : "eye"} className="w-5"></i></button>
+                            </div>
+                            <button type="submit" className="w-full py-4 bg-[var(--primary)] text-white rounded-xl font-bold shadow-lg">প্রবেশ করুন</button>
+                        </form>
                     </div>
-                </div>
+                </motion.div>
             );
+        }
 
-            // --- LOGIN PAGE ---
-            if(view === "login") return (
-                <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-                    <div className="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl relative">
-                        <img src={set.logo} className="w-16 h-16 mx-auto mb-6 rounded-full cursor-pointer" onClick={() => navigate("landing")} />
-                        <LoginControl onLogin={handleLogin} onSignup={handleSignup} last={JSON.parse(localStorage.getItem("tv_last"))} />
-                        <div className="mt-8 flex justify-between items-center">
-                            <button onClick={() => handleLogin("Guest", "Guest")} className="text-gray-400 text-xs font-bold uppercase">Guest Mode</button>
-                            <div className="admin-lock" onClick={() => {
-                                const e = prompt("Admin Email:"); const p = prompt("Password:");
-                                if(e && p) handleLogin(e, p);
-                            }}><i className="fa-solid fa-lock"></i></div>
+        function HomeView({ user, config, logout, openAdmin, getTextStyle }) {
+            const [genderSel, setGenderSel] = useState({});
+            const [loadingZone, setLoadingZone] = useState(null);
+
+            const handleJoin = (z, gender) => {
+                setLoadingZone(z.id);
+                setTimeout(() => {
+                    setLoadingZone(null);
+                    window.location.href = gender === 'male' ? z.m : z.f;
+                }, 1500);
+            };
+
+            return (
+                <div className="min-h-screen bg-white">
+                    <header className="p-6 shadow-md flex justify-between items-center" style={{backgroundColor: config.themeColor}}>
+                        <div className="w-10">
+                            {user.role === 'admin' && <button onClick={openAdmin} className="p-2 bg-white/10 rounded-full text-white"><i data-lucide="settings" className="w-5"></i></button>}
                         </div>
-                    </div>
-                </div>
-            );
+                        <div className="flex flex-col items-center text-center">
+                            <img src={config.logo} className="w-8 mb-1" />
+                            <h1 style={getTextStyle('brandingName')}>{config.texts.brandingName.val}</h1>
+                        </div>
+                        <div className="w-10 flex justify-end">
+                            <button onClick={logout} className="p-2 text-red-300"><i data-lucide="log-out" className="w-5"></i></button>
+                        </div>
+                    </header>
 
-            // --- HOME PAGE ---
-            if(view === "home") return (
-                <div className="min-h-screen bg-gray-50">
-                    <Header />
-                    <div className="w-full py-16 text-center bg-white border-b mb-12">
-                        <h2 style={{fontFamily: set.sHero.font, color: set.bannerColor}} className="text-3xl font-bold uppercase tracking-widest">Available Zones</h2>
-                        <p className="text-gray-400 mt-2">{set.sMotto.text}</p>
-                    </div>
-
-                    <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {set.zones.map(z => (
-                            <ZoneCard key={z.id} z={z} user={user} tempUI={tempUI} setTempUI={setTempUI} />
-                        ))}
-                    </div>
-
-                    <div className="mt-28 flex flex-col items-center text-center px-6 mb-20">
-                        <img src={set.ceoImg} className="w-40 h-40 rounded-full border-4 border-white shadow-2xl mb-6 object-cover" />
-                        <h3 style={{fontFamily: set.sCeoTitle.font, fontSize: set.sCeoTitle.size, color: set.sCeoTitle.color}} className="font-bold mb-2">
-                            {set.sCeoTitle.text}
-                        </h3>
-                        <p style={{fontFamily: set.sCeoMsg.font, fontSize: set.sCeoMsg.size, color: set.sCeoMsg.color}} className="italic max-w-xl">
-                            "{set.sCeoMsg.text}"
-                        </p>
-                    </div>
-                    
-                    <footer className="bg-white py-12 text-center border-t">
-                        <p style={{fontFamily: set.sFooter.font, fontSize: set.sFooter.size, color: set.sFooter.color}}>{set.sFooter.text}</p>
+                    <main className="p-6 max-w-7xl mx-auto w-full">
+                        <h2 style={{...getTextStyle('heroTitle'), textAlign:'center', marginTop:'40px', marginBottom:'40px', color: config.themeColor}}>আপনার এরিয়া নির্বাচন করুন</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {config.zones.map(z => (
+                                <div key={z.id} className="bg-white p-8 rounded-24 shadow-premium border border-slate-100 flex flex-col items-center text-center">
+                                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[var(--primary)] mb-4"><i data-lucide="map-pin"></i></div>
+                                    <h3 className="text-xl font-bold mb-1">{z.name}</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{z.tags}</p>
+                                   
+                                    <select className="w-full p-3 bg-slate-50 rounded-xl font-bold text-sm mb-3 outline-none" onChange={(e) => setGenderSel({...genderSel, [z.id]: e.target.value})}>
+                                        <option value="">লিঙ্গ নির্বাচন করুন</option>
+                                        <option value="male">পুরুষ টিউটর</option>
+                                        <option value="female">মহিলা টিউটর</option>
+                                    </select>
+                                    {genderSel[z.id] && (
+                                        <button onClick={() => handleJoin(z, genderSel[z.id])} className="w-full py-3 bg-[var(--primary)] text-white rounded-xl font-bold text-sm shadow-lg flex justify-center items-center gap-2">
+                                            {loadingZone === z.id ? "লোডিং..." : "হোয়াটসঅ্যাপ গ্রুপ"}
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+                    <footer className="p-10 border-t mt-16 text-center text-gray-400 text-xs">
+                        <p>{config.texts.footerText.val}</p>
                     </footer>
                 </div>
             );
         }
 
-        // --- SUB COMPONENTS ---
+        function AdminPanel({ config, save, close }) {
+            const [tab, setTab] = useState('general');
+            const [temp, setTemp] = useState(JSON.parse(JSON.stringify(config)));
+            const [isSaving, setIsSaving] = useState(false);
 
-        function LoginControl({ onLogin, onSignup, last }) {
-            const [isLog, setIsLog] = useState(true);
-            const [em, setEm] = useState(""); const [ps, setPs] = useState(""); const [rl, setRl] = useState("Tutor");
-
-            return (
-                <div className="space-y-4">
-                    {isLog && last && (
-                        <div className="mb-4 p-4 bg-blue-50 rounded-2xl border flex justify-between items-center">
-                            <div className="text-[10px] font-bold uppercase">
-                                <p>{last.email}</p>
-                                <p className="opacity-40">{last.role}</p>
-                            </div>
-                            <button onClick={() => onLogin(last.email, last.pass)} className="bg-blue-800 text-white px-4 py-2 rounded-xl text-xs font-bold">Quick Login</button>
-                        </div>
-                    )}
-                    <div className="flex bg-gray-100 p-1 rounded-2xl">
-                        <button onClick={() => setIsLog(true)} className={`flex-1 py-3 rounded-xl font-bold text-sm ${isLog ? 'bg-white shadow' : 'text-gray-400'}`}>লগইন</button>
-                        <button onClick={() => setIsLog(false)} className={`flex-1 py-3 rounded-xl font-bold text-sm ${!isLog ? 'bg-white shadow' : 'text-gray-400'}`}>সাইন আপ</button>
-                    </div>
-                    <input type="email" placeholder="ইমেইল" className="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-400" onChange={v => setEm(v.target.value)} />
-                    <input type="password" placeholder="পাসওয়ার্ড" className="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-400" onChange={v => setPs(v.target.value)} />
-                    {!isLog && (
-                        <select className="w-full p-4 bg-gray-50 border rounded-2xl outline-none font-bold" onChange={v => setRl(v.target.value)}>
-                            <option value="Tutor">আমি একজন টিউটর</option>
-                            <option value="Guardian">আমি একজন অভিভাবক</option>
-                        </select>
-                    )}
-                    <button onClick={() => isLog ? onLogin(em, ps) : onSignup(em, ps, rl)} className="w-full bg-blue-800 text-white py-4 rounded-2xl font-bold shadow-lg">
-                        {isLog ? "প্রবেশ করুন" : "রেজিস্ট্রেশন করুন"}
-                    </button>
-                </div>
-            );
-        }
-
-        function ZoneCard({ z, user, tempUI, setTempUI }) {
-            const [load, setLoad] = useState(false);
-            const select = (val) => {
-                if(!val) return;
-                setLoad(true);
-                setTimeout(() => { setTempUI(p => ({...p, [z.id]: val})); setLoad(false); }, 2000);
+            const handleSave = async () => {
+                setIsSaving(true);
+                await save(temp);
+                setIsSaving(false);
+                close();
+                alert('Cloud Updated!');
             };
 
             return (
-                <div className="zone-card flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-blue-50 text-blue-800 rounded-full flex items-center justify-center mb-5 text-2xl shadow-inner"><i className="fa-solid fa-location-dot"></i></div>
-                    <h3 className="text-2xl font-bold text-gray-800">{z.title}</h3>
-                    <p className="text-gray-400 text-sm mt-1 mb-6 bg-gray-50 px-4 py-1 rounded-full">{z.area}</p>
-
-                    {user.role === 'Tutor' && (
-                        <div className="w-full">
-                            {!tempUI[z.id] ? (
-                                load ? <div className="flex justify-center py-2"><div className="spinner-sm"></div></div> : (
-                                    <select className="w-full p-3 border rounded-xl font-bold text-sm bg-gray-50 outline-none" onChange={e => select(e.target.value)}>
-                                        <option value="">জেন্ডার সিলেক্ট করুন</option>
-                                        <option value="male">আমি পুরুষ টিউটর</option>
-                                        <option value="female">আমি মহিলা টিউটর</option>
-                                    </select>
-                                )
-                            ) : (
-                                <a href={tempUI[z.id] === 'male' ? z.ml : z.fl} target="_blank" rel="noopener noreferrer" className="block w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg animate-pulse">Join WhatsApp Group</a>
-                            )}
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-4xl h-[80vh] rounded-[30px] flex flex-col overflow-hidden">
+                        <div className="p-4 bg-[var(--primary)] text-white flex justify-between items-center">
+                            <span className="font-bold">ADMIN PANEL</span>
+                            <button onClick={close}><i data-lucide="x"></i></button>
                         </div>
-                    )}
-                    {user.role === 'Admin' && (
-                        <div className="flex gap-2 w-full mt-2">
-                            <a href={z.ml} target="_blank" className="flex-1 bg-blue-800 text-white py-2 rounded-xl text-[10px] font-bold">MALE LINK</a>
-                            <a href={z.fl} target="_blank" className="flex-1 bg-blue-800 text-white py-2 rounded-xl text-[10px] font-bold">FEMALE LINK</a>
-                        </div>
-                    )}
-                    {(user.role === 'Guardian' || user.role === 'Guest') && <span className="text-[10px] text-gray-300 font-bold uppercase tracking-tighter">View Only Mode</span>}
-                </div>
-            );
-        }
-
-        function AdminGear({ set, setSet }) {
-            const [open, setOpen] = useState(false);
-
-            const Editor = ({ label, target }) => (
-                <div className="p-4 bg-gray-50 rounded-2xl border space-y-3">
-                    <p className="text-[10px] font-bold text-blue-900 uppercase border-b pb-1">{label}</p>
-                    <textarea value={set[target].text} className="w-full p-2 text-sm border rounded-lg h-20 outline-none" onChange={e => setSet({...set, [target]: {...set[target], text: e.target.value}})} />
-                    <div className="grid grid-cols-3 gap-2">
-                        <select className="text-[10px] p-2 border rounded" value={set[target].font} onChange={e => setSet({...set, [target]: {...set[target], font: e.target.value}})}>
-                            {ALL_FONTS.map(f => <option key={f} value={f}>{f}</option>)}
-                        </select>
-                        <input className="text-[10px] p-2 border rounded" value={set[target].size} onChange={e => setSet({...set, [target]: {...set[target], size: e.target.value}})} />
-                        <input type="color" className="w-full h-8 rounded border p-1" value={set[target].color} onChange={e => setSet({...set, [target]: {...set[target], color: e.target.value}})} />
-                    </div>
-                </div>
-            );
-
-            return (
-                <>
-                    <i className="fa-solid fa-gear text-xl cursor-pointer text-white/50 hover:text-white" onClick={() => setOpen(true)}></i>
-                    {open && (
-                        <div className="fixed inset-0 bg-black/80 z-[9999] p-4 flex items-center justify-center backdrop-blur-md">
-                            <div className="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 shadow-2xl">
-                                <div className="flex justify-between items-center mb-8 border-b pb-4">
-                                    <h2 className="text-2xl font-bold">Admin Site Control</h2>
-                                    <i className="fa-solid fa-xmark text-2xl cursor-pointer text-gray-400" onClick={() => setOpen(false)}></i>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Editor label="Header Branding" target="sHeader" />
-                                    <Editor label="Main Hero Title" target="sHero" />
-                                    <Editor label="Hero Motto" target="sMotto" />
-                                    <Editor label="About Section Title" target="sAboutTitle" />
-                                    <Editor label="About Description" target="sAboutDesc" />
-                                    <Editor label="CEO Title" target="sCeoTitle" />
-                                    <Editor label="CEO Message" target="sCeoMsg" />
-                                    <Editor label="Global Footer" target="sFooter" />
-                                    <div className="p-4 bg-blue-50 rounded-2xl border">
-                                        <p className="text-[10px] font-bold text-blue-900 uppercase border-b mb-4">Assets & Branding Color</p>
-                                        <input type="color" className="w-full h-12 rounded-xl mb-4 p-1 bg-white border" value={set.bannerColor} onChange={e => setSet({...set, bannerColor: e.target.value})} />
-                                        <div className="flex gap-4">
-                                            <label className="flex-1 bg-white p-4 border rounded-2xl text-center text-[10px] font-bold cursor-pointer">LOGO UPLOAD <input type="file" className="hidden" onChange={e => {
-                                                const f = e.target.files[0]; const r = new FileReader();
-                                                r.onloadend = () => setSet({...set, logo: r.result}); if(f) r.readAsDataURL(f);
-                                            }} /></label>
-                                            <label className="flex-1 bg-white p-4 border rounded-2xl text-center text-[10px] font-bold cursor-pointer">CEO UPLOAD <input type="file" className="hidden" onChange={e => {
-                                                const f = e.target.files[0]; const r = new FileReader();
-                                                r.onloadend = () => setSet({...set, ceoImg: r.result}); if(f) r.readAsDataURL(f);
-                                            }} /></label>
-                                        </div>
+                        <div className="flex-1 flex overflow-hidden">
+                            <div className="w-1/3 bg-slate-50 p-4 space-y-2 border-r">
+                                {['general', 'texts', 'zones'].map(t => (
+                                    <button key={t} onClick={() => setTab(t)} className={`w-full text-left p-3 rounded-xl font-bold capitalize ${tab === t ? 'bg-[var(--primary)] text-white' : 'text-slate-400'}`}>{t}</button>
+                                ))}
+                                <button onClick={handleSave} className="w-full mt-4 py-3 bg-green-600 text-white rounded-xl font-bold">{isSaving ? 'Saving...' : 'Update Cloud'}</button>
+                            </div>
+                            <div className="flex-1 p-6 overflow-y-auto">
+                                {tab === 'general' && (
+                                    <div className="space-y-4">
+                                        <input value={temp.logo} onChange={e => setTemp({...temp, logo: e.target.value})} className="w-full p-3 bg-slate-100 rounded-xl" placeholder="Logo URL" />
+                                        <input type="color" value={temp.themeColor} onChange={e => setTemp({...temp, themeColor: e.target.value})} className="w-full h-10" />
                                     </div>
-                                </div>
-                                <div className="mt-10 pt-10 border-t">
-                                    <h3 className="text-xl font-bold mb-6 text-blue-900">Tuition Zones Manager</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {set.zones.map(z => (
-                                            <div key={z.id} className="p-5 bg-gray-50 rounded-2xl border space-y-3">
-                                                <input value={z.title} className="w-full p-3 border rounded-xl text-sm font-bold" onChange={e => {
-                                                    const nz = set.zones.map(x => x.id === z.id ? {...x, title: e.target.value} : x);
-                                                    setSet({...set, zones: nz});
-                                                }} />
-                                                <input value={z.area} className="w-full p-3 border rounded-xl text-xs" onChange={e => {
-                                                    const nz = set.zones.map(x => x.id === z.id ? {...x, area: e.target.value} : x);
-                                                    setSet({...set, zones: nz});
-                                                }} />
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <input value={z.ml} className="p-2 border rounded-lg text-[10px] text-blue-600" placeholder="Male WA Link" onChange={e => {
-                                                        const nz = set.zones.map(x => x.id === z.id ? {...x, ml: e.target.value} : x);
-                                                        setSet({...set, zones: nz});
-                                                    }} />
-                                                    <input value={z.fl} className="p-2 border rounded-lg text-[10px] text-pink-600" placeholder="Female WA Link" onChange={e => {
-                                                        const nz = set.zones.map(x => x.id === z.id ? {...x, fl: e.target.value} : x);
-                                                        setSet({...set, zones: nz});
-                                                    }} />
-                                                </div>
+                                )}
+                                {tab === 'texts' && (
+                                    <div className="space-y-4">
+                                        {Object.keys(temp.texts).map(k => (
+                                            <div key={k} className="p-4 border rounded-xl">
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase">{k}</p>
+                                                <input value={temp.texts[k].val} onChange={e => { const n = {...temp}; n.texts[k].val = e.target.value; setTemp(n); }} className="w-full p-2 bg-slate-50 rounded mt-1" />
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                                <button onClick={() => setOpen(false)} className="w-full bg-green-600 text-white py-5 rounded-2xl font-bold mt-10 shadow-lg text-lg">Save & Close</button>
+                                )}
                             </div>
                         </div>
-                    )}
-                </>
+                    </div>
+                </div>
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<TutorsValley />);
+        setInterval(() => { if (window.lucide) window.lucide.createIcons(); }, 1000);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
